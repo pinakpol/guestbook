@@ -4,164 +4,289 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const CLEAR_PASSWORD = "9310134";
+
 app.use(express.json());
 
 const db = new sqlite3.Database("guestbook.db");
 
 db.serialize(() => {
-    db.run(`
-        CREATE TABLE IF NOT EXISTS entries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            avatar TEXT,
-            uuid TEXT,
-            comment TEXT,
-            created DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
+
+```
+db.run(`
+    CREATE TABLE IF NOT EXISTS entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        avatar TEXT,
+        uuid TEXT,
+        comment TEXT,
+        created DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+`);
+```
+
+});
+
+// ======================================
+// HOME
+// ======================================
+
+app.get("/", (req, res) => {
+
+```
+res.send("Second Life Guestbook Online");
+```
+
 });
 
 // ======================================
 // ADD ENTRY
 // ======================================
+
 app.post("/add", (req, res) => {
 
-    const avatar = req.body.avatar || "Unknown";
-    const uuid = req.body.uuid || "";
-    const comment = req.body.comment || "";
+```
+const avatar = req.body.avatar || "Unknown";
+const uuid = req.body.uuid || "";
+const comment = (req.body.comment || "").trim();
 
-    if(comment.trim() === "")
+if(comment === "")
+{
+    return res.status(400).send("Empty comment");
+}
+
+db.run(
+    `INSERT INTO entries
+     (avatar, uuid, comment)
+     VALUES (?, ?, ?)`,
+    [avatar, uuid, comment],
+    function(err)
     {
-        return res.status(400).send("Empty comment");
-    }
-
-    db.run(
-        `INSERT INTO entries
-         (avatar, uuid, comment)
-         VALUES (?, ?, ?)`,
-        [avatar, uuid, comment],
-        function(err)
+        if(err)
         {
-            if(err)
-            {
-                console.log(err);
-                return res.status(500).send("DB Error");
-            }
-
-            res.send("OK");
+            console.log(err);
+            return res.status(500).send("DB Error");
         }
-    );
+
+        res.send("OK");
+    }
+);
+```
+
 });
 
 // ======================================
-// LIST ENTRIES
+// LIST PAGE
 // ======================================
+
 app.get("/list", (req, res) => {
 
-    const page =
-        parseInt(req.query.page || "1");
+```
+const page = parseInt(req.query.page || "1");
+const perPage = 5;
+const offset = (page - 1) * perPage;
 
-    const perPage = 5;
+db.all(
+    `SELECT *
+     FROM entries
+     ORDER BY id DESC
+     LIMIT ?
+     OFFSET ?`,
+    [perPage, offset],
+    (err, rows) =>
+    {
+        if(err)
+            return res.status(500).send("DB Error");
 
-    const offset =
-        (page - 1) * perPage;
+        let output =
+            "Guestbook Page " +
+            page +
+            "\n\n";
 
-    db.all(
-        `SELECT *
-         FROM entries
-         ORDER BY id DESC
-         LIMIT ?
-         OFFSET ?`,
-        [perPage, offset],
-        (err, rows) =>
+        rows.forEach(r =>
         {
-            if(err)
-                return res.status(500).send("DB Error");
+            output +=
+                "[" + r.created + "]\n" +
+                r.avatar + "\n" +
+                r.comment + "\n\n";
+        });
 
-            let output =
-                "Guestbook Page " +
-                page +
-                "\n\n";
+        if(rows.length === 0)
+            output += "No entries.";
 
-            rows.forEach(r =>
-            {
-                output +=
-                    "[" + r.created + "]\n" +
-                    r.avatar + "\n" +
-                    r.comment + "\n\n";
+        res.send(output);
+    }
+);
+```
+
+});
+
+// ======================================
+// SINGLE ENTRY FOR DIALOG VIEWER
+// ======================================
+
+app.get("/entry", (req, res) => {
+
+```
+const index =
+    parseInt(req.query.index || "0");
+
+db.get(
+    `SELECT *
+     FROM entries
+     ORDER BY id DESC
+     LIMIT 1 OFFSET ?`,
+    [index],
+    (err, row) =>
+    {
+        if(err)
+        {
+            return res.status(500).json({
+                error:true
             });
-
-            if(rows.length === 0)
-                output += "No entries.";
-
-            res.send(output);
         }
-    );
+
+        db.get(
+            `SELECT COUNT(*) AS total
+             FROM entries`,
+            [],
+            (err2, countRow) =>
+            {
+                if(err2)
+                {
+                    return res.status(500).json({
+                        error:true
+                    });
+                }
+
+                if(!row)
+                {
+                    return res.json({
+                        total:0
+                    });
+                }
+
+                res.json({
+                    total: countRow.total,
+                    avatar: row.avatar,
+                    comment: row.comment,
+                    created: row.created
+                });
+            }
+        );
+    }
+);
+```
+
 });
 
 // ======================================
 // CLEAR ALL
 // ======================================
+
 app.post("/clear", (req, res) => {
 
-    db.run(
-        `DELETE FROM entries`,
-        [],
-        err =>
-        {
-            if(err)
-                return res.status(500).send("DB Error");
+```
+const password =
+    req.body.password || "";
 
-            res.send("Guestbook Cleared");
+if(password !== CLEAR_PASSWORD)
+{
+    return res
+        .status(403)
+        .send("Forbidden");
+}
+
+db.run(
+    `DELETE FROM entries`,
+    [],
+    err =>
+    {
+        if(err)
+        {
+            return res
+                .status(500)
+                .send("DB Error");
         }
-    );
+
+        res.send("Guestbook Cleared");
+    }
+);
+```
+
 });
 
 // ======================================
-// DELETE ONE ENTRY
+// DELETE ENTRY
 // ======================================
+
 app.post("/delete/:id", (req, res) => {
 
-    db.run(
-        `DELETE FROM entries
-         WHERE id=?`,
-        [req.params.id],
-        err =>
-        {
-            if(err)
-                return res.status(500).send("DB Error");
+```
+const password =
+    req.body.password || "";
 
-            res.send("Deleted");
+if(password !== CLEAR_PASSWORD)
+{
+    return res
+        .status(403)
+        .send("Forbidden");
+}
+
+db.run(
+    `DELETE FROM entries
+     WHERE id = ?`,
+    [req.params.id],
+    err =>
+    {
+        if(err)
+        {
+            return res
+                .status(500)
+                .send("DB Error");
         }
-    );
+
+        res.send("Deleted");
+    }
+);
+```
+
 });
 
 // ======================================
 // STATS
 // ======================================
+
 app.get("/stats", (req, res) => {
 
-    db.get(
-        `SELECT
-            COUNT(*) AS comments,
-            COUNT(DISTINCT uuid) AS visitors
-         FROM entries`,
-        [],
-        (err,row) =>
+```
+db.get(
+    `SELECT
+        COUNT(*) AS comments,
+        COUNT(DISTINCT uuid) AS visitors
+     FROM entries`,
+    [],
+    (err,row) =>
+    {
+        if(err)
         {
-            if(err)
-                return res.status(500).send("DB Error");
-
-            res.json(row);
+            return res
+                .status(500)
+                .send("DB Error");
         }
-    );
+
+        res.json(row);
+    }
+);
+```
+
 });
 
 // ======================================
 
 app.listen(PORT, () =>
 {
-    console.log(
-        "Guestbook running on port",
-        PORT
-    );
+console.log(
+"Guestbook running on port",
+PORT
+);
 });
