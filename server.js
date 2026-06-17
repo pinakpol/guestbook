@@ -31,7 +31,12 @@ db.run(`
 // ======================================
 
 app.get("/", (req, res) => {
-
+    res.json({
+        status: "OK",
+        service: "Second Life Guestbook",
+        endpoints: ["/add", "/list", "/entry", "/stats"]
+    });
+});
 ```
 res.send("Second Life Guestbook Online");
 ```
