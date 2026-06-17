@@ -4,7 +4,7 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const CLEAR_PASSWORD = "9310134";
+const CLEAR_PASSWORD = "96310134";
 
 app.use(express.json());
 
