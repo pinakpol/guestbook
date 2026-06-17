@@ -126,59 +126,42 @@ db.all(
 
 app.get("/entry", (req, res) => {
 
-```
-const index =
-    parseInt(req.query.index || "0");
+    const index = parseInt(req.query.index || "0");
 
-db.get(
-    `SELECT *
-     FROM entries
-     ORDER BY id DESC
-     LIMIT 1 OFFSET ?`,
-    [index],
-    (err, row) =>
-    {
-        if(err)
+    db.all(
+        `SELECT *
+         FROM entries
+         ORDER BY id DESC`,
+        [],
+        (err, rows) =>
         {
-            return res.status(500).json({
-                error:true
-            });
-        }
+            if(err)
+                return res.status(500).json({error:true});
 
-        db.get(
-            `SELECT COUNT(*) AS total
-             FROM entries`,
-            [],
-            (err2, countRow) =>
+            const total = rows.length;
+
+            if(index < 0 || index >= total)
             {
-                if(err2)
-                {
-                    return res.status(500).json({
-                        error:true
-                    });
-                }
-
-                if(!row)
-                {
-                    return res.json({
-                        total:0
-                    });
-                }
-
-                res.json({
-                    total: countRow.total,
-                    avatar: row.avatar,
-                    comment: row.comment,
-                    created: row.created
+                return res.json({
+                    total,
+                    avatar:"",
+                    comment:"No entry",
+                    created:""
                 });
             }
-        );
-    }
-);
-```
+
+            const row = rows[index];
+
+            res.json({
+                total,
+                avatar: row.avatar,
+                comment: row.comment,
+                created: row.created
+            });
+        }
+    );
 
 });
-
 // ======================================
 // CLEAR ALL
 // ======================================
