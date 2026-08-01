@@ -1,30 +1,39 @@
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const CLEAR_PASSWORD = "96310134";
+const CLEAR_PASSWORD = "9310134";
 
 app.use(express.json());
 
-const db = new sqlite3.Database("guestbook.db");
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
-// ===============================
-// INIT DB
-// ===============================
-db.serialize(() => {
+app.get("/", async (req, res) =>
+{
+    try
+    {
+        await pool.query("SELECT NOW()");
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS entries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            avatar TEXT,
-            uuid TEXT,
-            comment TEXT,
-            created DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
+        res.json({
+            status: "Online",
+            database: "Connected"
+        });
+    }
+    catch(err)
+    {
+        console.error(err);
 
+        res.status(500).json({
+            status: "Database Error"
+        });
+    }
 });
 
 // ===============================
