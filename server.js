@@ -47,122 +47,172 @@ app.get("/", (req, res) => {
     });
 });
 
-// ===============================
+//==================================================
 // ADD ENTRY
-// ===============================
-app.post("/add", (req, res) => {
+//==================================================
 
-    const avatar = req.body.avatar || "Unknown";
-    const uuid = req.body.uuid || "";
-    const comment = (req.body.comment || "").trim();
+app.post("/add", async (req, res) =>
+{
+    try
+    {
+        const avatar = req.body.avatar || "Unknown";
+        const uuid = req.body.uuid || "";
+        const comment = (req.body.comment || "").trim();
 
-    if(comment === "")
-        return res.status(400).send("Empty comment");
+        if(comment == "")
+            return res.status(400).send("Empty comment");
 
-    db.run(
-        `INSERT INTO entries (avatar, uuid, comment)
-         VALUES (?, ?, ?)`,
-        [avatar, uuid, comment],
-        function(err)
-        {
-            if(err)
-            {
-                console.log(err);
-                return res.status(500).send("DB Error");
-            }
+        await pool.query(
+            `INSERT INTO guestbook_entries
+            (avatar, uuid, comment)
+            VALUES ($1,$2,$3)`,
+            [avatar, uuid, comment]
+        );
 
-            res.send("OK");
-        }
-    );
+        res.send("OK");
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
 });
+//==================================================
+// LIST
+//==================================================
 
-// ===============================
-// LIST (PAGE VIEW)
-// ===============================
-app.get("/list", (req, res) => {
+app.get("/list", async (req,res)=>
+{
+    try
+    {
+        const page =
+            parseInt(req.query.page || "1");
 
-    const page = parseInt(req.query.page || "1");
-    const perPage = 5;
-    const offset = (page - 1) * perPage;
+        const perPage = 5;
 
-    db.all(
-        `SELECT *
-         FROM entries
-         ORDER BY id DESC
-         LIMIT ? OFFSET ?`,
-        [perPage, offset],
-        (err, rows) =>
+        const offset =
+            (page-1)*perPage;
+
+        const result =
+            await pool.query(
+
+            `SELECT *
+             FROM guestbook_entries
+             ORDER BY id DESC
+             OFFSET $1
+             LIMIT $2`,
+
+            [offset,perPage]
+
+        );
+
+        let output =
+            "Guestbook Page " +
+            page +
+            "\n\n";
+
+        if(result.rows.length==0)
         {
-            if(err)
-                return res.status(500).send("DB Error");
-
-            let output = "Guestbook Page " + page + "\n\n";
-
-            rows.forEach(r =>
+            output +=
+                "No entries.";
+        }
+        else
+        {
+            result.rows.forEach(r=>
             {
                 output +=
-                    "[" + r.created + "]\n" +
-                    r.avatar + "\n" +
-                    r.comment + "\n\n";
+                    "[" +
+                    r.created +
+                    "]\n" +
+
+                    r.avatar +
+                    "\n" +
+
+                    r.comment +
+                    "\n\n";
             });
-
-            if(rows.length === 0)
-                output += "No entries.";
-
-            res.send(output);
         }
-    );
+
+        res.send(output);
+
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+
 });
 
-// ===============================
-// SINGLE ENTRY (FOR DIALOG VIEWER)
-// ===============================
-app.get("/entry", (req, res) => {
+//==================================================
+// SINGLE ENTRY
+//==================================================
 
-    const index = parseInt(req.query.index || "0");
+app.get("/entry", async (req,res)=>
+{
+    try
+    {
+        const index =
+            parseInt(req.query.index || "0");
 
-    db.all(
-        `SELECT *
-         FROM entries
-         ORDER BY id DESC`,
-        [],
-        (err, rows) =>
+        const totalResult =
+            await pool.query(
+                "SELECT COUNT(*) FROM guestbook_entries"
+            );
+
+        const total =
+            parseInt(totalResult.rows[0].count);
+
+        if(total == 0)
         {
-            if(err)
-                return res.status(500).json({error:true});
-
-            const total = rows.length;
-
-            if(total === 0)
-            {
-                return res.json({
-                    total: 0,
-                    avatar: "",
-                    comment: "",
-                    created: ""
-                });
-            }
-
-            if(index < 0 || index >= total)
-            {
-                return res.json({
-                    total,
-                    avatar: "",
-                    comment: "No entry",
-                    created: ""
-                });
-            }
-
-            const row = rows[index];
-
-            res.json({
-                total,
-                avatar: row.avatar,
-                comment: row.comment,
-                created: row.created
+            return res.json({
+                total:0,
+                avatar:"",
+                comment:"",
+                created:""
             });
         }
-    );
+
+        const result =
+            await pool.query(
+
+            `SELECT *
+             FROM guestbook_entries
+             ORDER BY id DESC
+             OFFSET $1
+             LIMIT 1`,
+
+            [index]
+
+        );
+
+        if(result.rows.length == 0)
+        {
+            return res.json({
+                total:total,
+                avatar:"",
+                comment:"",
+                created:""
+            });
+        }
+
+        const row =
+            result.rows[0];
+
+        res.json({
+            total:total,
+            avatar:row.avatar,
+            comment:row.comment,
+            created:row.created
+        });
+
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+
 });
 
 // ===============================
