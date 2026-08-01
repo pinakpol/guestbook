@@ -215,67 +215,91 @@ app.get("/entry", async (req,res)=>
 
 });
 
-// ===============================
-// CLEAR (PASSWORD PROTECTED)
-// ===============================
-app.post("/clear", (req, res) => {
+//==================================================
+// CLEAR ALL
+//==================================================
 
-    const password = req.body.password || "";
+app.post("/clear", async (req,res)=>
+{
+    try
+    {
+        const password =
+            req.body.password || "";
 
-    if(password !== CLEAR_PASSWORD)
-        return res.status(403).send("Forbidden");
+        if(password != CLEAR_PASSWORD)
+            return res.status(403).send("Forbidden");
 
-    db.run(`DELETE FROM entries`, [], err => {
-
-        if(err)
-            return res.status(500).send("DB Error");
+        await pool.query(
+            "DELETE FROM guestbook_entries"
+        );
 
         res.send("Guestbook Cleared");
-    });
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
 });
 
-// ===============================
-// DELETE (PASSWORD PROTECTED)
-// ===============================
-app.post("/delete/:id", (req, res) => {
+//==================================================
+// DELETE ENTRY
+//==================================================
 
-    const password = req.body.password || "";
+app.post("/delete/:id", async (req,res)=>
+{
+    try
+    {
+        const password =
+            req.body.password || "";
 
-    if(password !== CLEAR_PASSWORD)
-        return res.status(403).send("Forbidden");
+        if(password != CLEAR_PASSWORD)
+            return res.status(403).send("Forbidden");
 
-    db.run(
-        `DELETE FROM entries WHERE id=?`,
-        [req.params.id],
-        err =>
-        {
-            if(err)
-                return res.status(500).send("DB Error");
+        await pool.query(
 
-            res.send("Deleted");
-        }
-    );
+            `DELETE
+             FROM guestbook_entries
+             WHERE id=$1`,
+
+            [req.params.id]
+
+        );
+
+        res.send("Deleted");
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
 });
 
-// ===============================
+//==================================================
 // STATS
-// ===============================
-app.get("/stats", (req, res) => {
+//==================================================
 
-    db.get(
-        `SELECT
-            COUNT(*) AS comments,
-            COUNT(DISTINCT uuid) AS visitors
-         FROM entries`,
-        [],
-        (err, row) =>
-        {
-            if(err)
-                return res.status(500).send("DB Error");
+app.get("/stats", async (req,res)=>
+{
+    try
+    {
+        const result =
+            await pool.query(
 
-            res.json(row);
-        }
-    );
+            `SELECT
+                COUNT(*) AS comments,
+                COUNT(DISTINCT uuid) AS visitors
+             FROM guestbook_entries`
+
+            );
+
+        res.json(result.rows[0]);
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
 });
 
 // ===============================
