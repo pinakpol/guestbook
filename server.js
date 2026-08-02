@@ -308,6 +308,37 @@ app.get("/admin", (req,res)=>
     res.sendFile(__dirname + "/public/admin.html");
 });
 
+//==================================================
+// GET ALL ENTRIES (JSON)
+//==================================================
+
+app.get("/entries", async (req,res)=>
+{
+    try
+    {
+        const result =
+            await pool.query(
+
+            `SELECT
+                id,
+                avatar,
+                uuid,
+                comment,
+                created
+             FROM guestbook_entries
+             ORDER BY id DESC`
+
+            );
+
+        res.json(result.rows);
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+});
+
 // ===============================
 app.listen(PORT, () => {
     console.log("Guestbook running on port", PORT);
