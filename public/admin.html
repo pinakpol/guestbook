@@ -1,49 +1,254 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
 
-<title>Guestbook Admin</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Second Life Guestbook</title>
 
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
 body{
-    background:#202020;
+
+    margin:0;
+
+    font-family:Arial,Helvetica,sans-serif;
+
+    background:#ece4d0;
+
+    color:#222;
+
+}
+
+header{
+
+    background:#5b4128;
+
     color:white;
-    font-family:Arial;
-    margin:30px;
+
+    padding:18px;
+
+    text-align:center;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+    letter-spacing:1px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+
 }
 
-h1{
+.container{
+
+    width:95%;
+    max-width:1400px;
+
+    margin:20px auto;
+
+}
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(220px,1fr));
+
+    gap:15px;
+
     margin-bottom:20px;
+
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
+.card{
+
+    background:white;
+
+    border-radius:8px;
+
+    padding:18px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+
 }
 
-th{
-    background:#444;
+.cardTitle{
+
+    color:#777;
+
+    font-size:14px;
+
+    margin-bottom:8px;
+
 }
 
-th,td{
-    border:1px solid #555;
+.cardValue{
+
+    font-size:34px;
+
+    font-weight:bold;
+
+}
+
+.toolbar{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin-bottom:18px;
+
+}
+
+.toolbar input{
+
+    flex:1;
+
+    min-width:250px;
+
     padding:10px;
-    text-align:left;
+
+    border:1px solid #bbb;
+
+    border-radius:6px;
+
+    font-size:15px;
+
 }
 
 button{
 
-    padding:6px 12px;
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:6px;
+
+    background:#5b4128;
+
+    color:white;
+
     cursor:pointer;
+
+    font-size:14px;
+
+}
+
+button:hover{
+
+    background:#7a5634;
+
+}
+
+.tableBox{
+
+    background:white;
+
+    border-radius:8px;
+
+    overflow:hidden;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+
+}
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+thead{
+
+    background:#5b4128;
+
+    color:white;
+
+}
+
+th{
+
+    padding:12px;
+
+    text-align:left;
+
+}
+
+td{
+
+    padding:10px 12px;
+
+    border-bottom:1px solid #e5e5e5;
+
+    vertical-align:top;
+
+}
+
+tbody tr:hover{
+
+    background:#f8f8f8;
 
 }
 
 .comment{
 
-    max-width:450px;
+    max-width:500px;
+
+    word-break:break-word;
+
+}
+
+.deleteBtn{
+
+    background:#b62020;
+
+}
+
+.deleteBtn:hover{
+
+    background:#d22b2b;
+
+}
+
+.footer{
+
+    margin-top:18px;
+
+    color:#666;
+
+    font-size:13px;
+
+    text-align:center;
+
+}
+
+@media(max-width:900px){
+
+table{
+
+    font-size:13px;
+
+}
+
+.cardValue{
+
+    font-size:28px;
+
+}
 
 }
 
@@ -53,11 +258,103 @@ button{
 
 <body>
 
-<h1>Guestbook Admin</h1>
+<header>
 
-<div id="stats"></div>
+Second Life Guestbook Administration
 
-<br>
+</header>
+
+<div class="container">
+
+<div class="cards">
+
+<div class="card">
+
+<div class="cardTitle">
+
+Comments
+
+</div>
+
+<div
+class="cardValue"
+id="comments">
+
+...
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="cardTitle">
+
+Visitors
+
+</div>
+
+<div
+class="cardValue"
+id="visitors">
+
+...
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="cardTitle">
+
+Database Status
+
+</div>
+
+<div
+class="cardValue"
+id="status">
+
+ONLINE
+
+</div>
+
+</div>
+
+</div>
+
+<div class="toolbar">
+
+<input
+
+id="search"
+
+type="text"
+
+placeholder="Search avatar or comment...">
+
+<button id="refreshBtn">
+
+Refresh
+
+</button>
+
+<button id="exportCSV">
+
+Export CSV
+
+</button>
+
+<button id="exportJSON">
+
+Export JSON
+
+</button>
+
+</div>
+
+<div class="tableBox">
 
 <table>
 
@@ -65,76 +362,403 @@ button{
 
 <tr>
 
-<th>ID</th>
-<th>Avatar</th>
-<th>Comment</th>
-<th>Date</th>
-<th>Action</th>
+<th width="70">
+
+ID
+
+</th>
+
+<th width="220">
+
+Avatar
+
+</th>
+
+<th>
+
+Comment
+
+</th>
+
+<th width="180">
+
+Date
+
+</th>
+
+<th width="110">
+
+Action
+
+</th>
 
 </tr>
 
 </thead>
 
-<tbody id="tbody">
+<tbody id="tableBody">
+
+<tr>
+
+<td colspan="5"
+style="text-align:center;">
+
+Loading...
+
+</td>
+
+</tr>
 
 </tbody>
 
 </table>
 
+</div>
+
+<div class="footer">
+
+Second Life Guestbook Server
+
+</div>
+
+</div>
+
 <script>
 
-fetch("/stats")
+/*
 
-.then(r=>r.json())
+<script>
 
-.then(s=>{
+let allEntries = [];
 
-document.getElementById("stats").innerHTML=
+//--------------------------------------
+// Load Statistics
+//--------------------------------------
 
-"Comments : "+s.comments+
-"<br>Visitors : "+s.visitors;
+async function loadStats()
+{
+    try
+    {
+        const response =
+            await fetch("/stats");
+
+        const stats =
+            await response.json();
+
+        document.getElementById("comments").textContent =
+            stats.comments;
+
+        document.getElementById("visitors").textContent =
+            stats.visitors;
+
+        document.getElementById("status").textContent =
+            "ONLINE";
+    }
+    catch(err)
+    {
+        console.error(err);
+
+        document.getElementById("status").textContent =
+            "OFFLINE";
+    }
+}
+
+//--------------------------------------
+// Load Guestbook Entries
+//--------------------------------------
+
+async function loadEntries()
+{
+    try
+    {
+        const response =
+            await fetch("/entries");
+
+        allEntries =
+            await response.json();
+
+        renderTable(allEntries);
+    }
+    catch(err)
+    {
+        console.error(err);
+
+        document.getElementById("tableBody").innerHTML =
+        `
+        <tr>
+            <td colspan="5" style="text-align:center;color:red;">
+                Failed to load entries.
+            </td>
+        </tr>
+        `;
+    }
+}
+
+//--------------------------------------
+// Render Table
+//--------------------------------------
+
+function renderTable(rows)
+{
+    let html = "";
+
+    if(rows.length == 0)
+    {
+        html =
+        `
+        <tr>
+            <td colspan="5"
+                style="text-align:center;">
+                No guestbook entries.
+            </td>
+        </tr>
+        `;
+
+        document.getElementById("tableBody").innerHTML =
+            html;
+
+        return;
+    }
+
+    rows.forEach(row =>
+    {
+        const date =
+            new Date(row.created);
+
+        html +=
+        `
+        <tr>
+
+            <td>${row.id}</td>
+
+            <td>${escapeHTML(row.avatar)}</td>
+
+            <td class="comment">
+                ${escapeHTML(row.comment)}
+            </td>
+
+            <td>
+                ${date.toLocaleString()}
+            </td>
+
+            <td>
+
+                <button
+                    class="deleteBtn"
+                    onclick="deleteEntry(${row.id})">
+
+                    Delete
+
+                </button>
+
+            </td>
+
+        </tr>
+        `;
+    });
+
+    document.getElementById("tableBody").innerHTML =
+        html;
+}
+
+//--------------------------------------
+// Search
+//--------------------------------------
+
+document
+.getElementById("search")
+.addEventListener("input", function()
+{
+    const text =
+        this.value.toLowerCase();
+
+    const filtered =
+        allEntries.filter(e =>
+    {
+        return (
+            e.avatar.toLowerCase().includes(text) ||
+
+            e.comment.toLowerCase().includes(text)
+        );
+    });
+
+    renderTable(filtered);
+});
+
+//--------------------------------------
+// Refresh
+//--------------------------------------
+
+document
+.getElementById("refreshBtn")
+.addEventListener("click", function()
+{
+    loadStats();
+    loadEntries();
+});
+
+//--------------------------------------
+// Prevent HTML Injection
+//--------------------------------------
+
+function escapeHTML(text)
+{
+    return String(text)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+//--------------------------------------
+// Initial Load
+//--------------------------------------
+
+loadStats();
+
+loadEntries();
+
+//--------------------------------------
+// Delete Entry
+//--------------------------------------
+
+async function deleteEntry(id)
+{
+    const password =
+        prompt("Enter owner password");
+
+    if(password == null)
+        return;
+
+    try
+    {
+        const response =
+            await fetch("/delete/" + id,
+            {
+                method:"POST",
+
+                headers:
+                {
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(
+                {
+                    password:password
+                })
+            });
+
+        const text =
+            await response.text();
+
+        alert(text);
+
+        if(response.ok)
+        {
+            loadStats();
+            loadEntries();
+        }
+    }
+    catch(err)
+    {
+        console.error(err);
+
+        alert("Delete failed.");
+    }
+}
+
+
+//--------------------------------------
+// Export JSON
+//--------------------------------------
+
+document
+.getElementById("exportJSON")
+.addEventListener("click",function()
+{
+    const json =
+        JSON.stringify(allEntries,null,4);
+
+    const blob =
+        new Blob(
+        [json],
+        {
+            type:"application/json"
+        });
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href=url;
+
+    a.download="guestbook.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
 
 });
 
-fetch("/entries")
 
-.then(r=>r.json())
+//--------------------------------------
+// Export CSV
+//--------------------------------------
 
-.then(rows=>{
+document
+.getElementById("exportCSV")
+.addEventListener("click",function()
+{
 
-let html="";
+    let csv =
+        "ID,Avatar,Comment,Created\n";
 
-rows.forEach(r=>{
+    allEntries.forEach(e=>
+    {
 
-html+=`
+        csv +=
 
-<tr>
+        '"' + e.id + '",' +
 
-<td>${r.id}</td>
+        '"' + e.avatar.replace(/"/g,'""') + '",' +
 
-<td>${r.avatar}</td>
+        '"' + e.comment.replace(/"/g,'""') + '",' +
 
-<td class="comment">${r.comment}</td>
+        '"' + e.created + '"\n';
 
-<td>${new Date(r.created).toLocaleString()}</td>
+    });
 
-<td>
-<button onclick="deleteEntry(${r.id})">
-Delete
-</button>
-</td>
+    const blob =
+        new Blob(
+        [csv],
+        {
+            type:"text/csv"
+        });
 
-</tr>
+    const url =
+        URL.createObjectURL(blob);
 
-`;
+    const a =
+        document.createElement("a");
 
-});
+    a.href=url;
 
-document.getElementById("tbody").innerHTML=html;
+    a.download="guestbook.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
 
 });
 
 </script>
 
+*/
+
+</script>
+
 </body>
+
 </html>
