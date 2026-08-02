@@ -398,6 +398,42 @@ app.get("/visitors", async (req,res)=>
     }
 });
 
+//==================================================
+// PUBLIC GUESTBOOK PAGE
+//==================================================
+
+app.get("/guestbook", (req, res) =>
+{
+    res.sendFile(__dirname + "/public/guestbook.html");
+});
+
+//==================================================
+// PUBLIC ENTRIES
+//==================================================
+
+app.get("/publicEntries", async (req, res) =>
+{
+    try
+    {
+        const result =
+            await pool.query(
+                `SELECT
+                    avatar,
+                    comment,
+                    created
+                 FROM guestbook_entries
+                 ORDER BY id DESC`
+            );
+
+        res.json(result.rows);
+    }
+    catch(err)
+    {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+});
+
 // ===============================
 app.listen(PORT, () => {
     console.log("Guestbook running on port", PORT);
