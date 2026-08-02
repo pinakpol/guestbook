@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 const CLEAR_PASSWORD = "9310134";
 
 app.use(express.json());
+app.use(express.static("public"));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -300,6 +301,11 @@ app.get("/stats", async (req,res)=>
         console.error(err);
         res.status(500).send("Database Error");
     }
+});
+
+app.get("/admin", (req,res)=>
+{
+    res.sendFile(__dirname + "/public/admin.html");
 });
 
 // ===============================
