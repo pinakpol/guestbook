@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
+
 <title>Guestbook Admin</title>
 
 <style>
 
 body{
-    font-family:Arial;
-    background:#222;
+    background:#202020;
     color:white;
-    margin:40px;
+    font-family:Arial;
+    margin:30px;
+}
+
+h1{
+    margin-bottom:20px;
 }
 
 table{
@@ -18,13 +24,27 @@ table{
     border-collapse:collapse;
 }
 
-td,th{
+th{
+    background:#444;
+}
+
+th,td{
     border:1px solid #555;
-    padding:8px;
+    padding:10px;
+    text-align:left;
 }
 
 button{
+
     padding:6px 12px;
+    cursor:pointer;
+
+}
+
+.comment{
+
+    max-width:450px;
+
 }
 
 </style>
@@ -35,17 +55,76 @@ button{
 
 <h1>Guestbook Admin</h1>
 
-<div id="entries">
-Loading...
-</div>
+<div id="stats"></div>
+
+<br>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Avatar</th>
+<th>Comment</th>
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbody">
+
+</tbody>
+
+</table>
 
 <script>
 
-fetch("/list?page=1")
-.then(r=>r.text())
-.then(t=>{
-    document.getElementById("entries").innerHTML=
-        "<pre>"+t+"</pre>";
+fetch("/stats")
+
+.then(r=>r.json())
+
+.then(s=>{
+
+document.getElementById("stats").innerHTML=
+
+"Comments : "+s.comments+
+"<br>Visitors : "+s.visitors;
+
+});
+
+fetch("/entries")
+
+.then(r=>r.json())
+
+.then(rows=>{
+
+let html="";
+
+rows.forEach(r=>{
+
+html+=`
+
+<tr>
+
+<td>${r.id}</td>
+
+<td>${r.avatar}</td>
+
+<td class="comment">${r.comment}</td>
+
+<td>${r.created}</td>
+
+</tr>
+
+`;
+
+});
+
+document.getElementById("tbody").innerHTML=html;
+
 });
 
 </script>
