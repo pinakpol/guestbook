@@ -63,11 +63,36 @@ app.post("/add", async (req, res) =>
         if(comment == "")
             return res.status(400).send("Empty comment");
 
+        //--------------------------------------------------
+        // Save Guestbook Entry
+        //--------------------------------------------------
+
         await pool.query(
             `INSERT INTO guestbook_entries
             (avatar, uuid, comment)
-            VALUES ($1,$2,$3)`,
+            VALUES ($1, $2, $3)`,
             [avatar, uuid, comment]
+        );
+
+        //--------------------------------------------------
+        // Update Visitor Statistics
+        //--------------------------------------------------
+
+        await pool.query(
+            `INSERT INTO guestbook_visitors
+            (uuid, avatar)
+            VALUES ($1, $2)
+
+            ON CONFLICT (uuid)
+
+            DO UPDATE SET
+
+                avatar = EXCLUDED.avatar,
+
+                visits = guestbook_visitors.visits + 1,
+
+                last_visit = CURRENT_TIMESTAMP`,
+            [uuid, avatar]
         );
 
         res.send("OK");
