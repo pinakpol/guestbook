@@ -174,7 +174,7 @@ app.get("/list", async (req,res)=>
 // SINGLE ENTRY
 //==================================================
 
-app.get("/entry", async (req,res)=>
+app.get("/entry", async (req, res) =>
 {
     try
     {
@@ -183,62 +183,67 @@ app.get("/entry", async (req,res)=>
 
         const totalResult =
             await pool.query(
-                "SELECT COUNT(*) FROM guestbook_entries"
+                "SELECT COUNT(*) AS total FROM guestbook_entries"
             );
 
         const total =
-            parseInt(totalResult.rows[0].count);
+            parseInt(totalResult.rows[0].total);
 
         if(total == 0)
         {
             return res.json({
-                total:0,
-                avatar:"",
-                comment:"",
-                created:""
+                total: 0,
+                id: 0,
+                avatar: "",
+                uuid: "",
+                comment: "",
+                created: ""
             });
         }
 
         const result =
             await pool.query(
-
-            `SELECT *
-             FROM guestbook_entries
-             ORDER BY id DESC
-             OFFSET $1
-             LIMIT 1`,
-
-            [index]
-
-        );
+                `SELECT
+                    id,
+                    avatar,
+                    uuid,
+                    comment,
+                    created
+                 FROM guestbook_entries
+                 ORDER BY id DESC
+                 OFFSET $1
+                 LIMIT 1`,
+                [index]
+            );
 
         if(result.rows.length == 0)
         {
             return res.json({
-                total:total,
-                avatar:"",
-                comment:"",
-                created:""
+                total: total,
+                id: 0,
+                avatar: "",
+                uuid: "",
+                comment: "",
+                created: ""
             });
         }
 
-        const row =
-            result.rows[0];
+        const row = result.rows[0];
 
         res.json({
-            total:total,
-            avatar:row.avatar,
-            comment:row.comment,
-            created:row.created
+            total: total,
+            id: row.id,
+            avatar: row.avatar,
+            uuid: row.uuid,
+            comment: row.comment,
+            created: row.created
         });
-
     }
     catch(err)
     {
         console.error(err);
         res.status(500).send("Database Error");
     }
-
 });
 
 //==================================================
