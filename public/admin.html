@@ -69,6 +69,7 @@ button{
 <th>Avatar</th>
 <th>Comment</th>
 <th>Date</th>
+<th>Action</th>
 
 </tr>
 
@@ -115,7 +116,13 @@ html+=`
 
 <td class="comment">${r.comment}</td>
 
-<td>${r.created}</td>
+<td>${new Date(r.created).toLocaleString()}</td>
+
+<td>
+<button onclick="deleteEntry(${r.id})">
+Delete
+</button>
+</td>
 
 </tr>
 
