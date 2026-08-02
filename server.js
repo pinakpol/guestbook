@@ -364,6 +364,35 @@ app.get("/entries", async (req,res)=>
     }
 });
 
+//==================================================
+// VISITORS
+//==================================================
+
+app.get("/visitors", async (req,res)=>
+{
+    try
+    {
+        const result =
+            await pool.query(
+
+            `SELECT *
+
+             FROM guestbook_visitors
+
+             ORDER BY last_visit DESC`
+
+            );
+
+        res.json(result.rows);
+    }
+    catch(err)
+    {
+        console.error(err);
+
+        res.status(500).send("Database Error");
+    }
+});
+
 // ===============================
 app.listen(PORT, () => {
     console.log("Guestbook running on port", PORT);
