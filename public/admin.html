@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Guestbook Admin</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#222;
+    color:white;
+    margin:40px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+td,th{
+    border:1px solid #555;
+    padding:8px;
+}
+
+button{
+    padding:6px 12px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Guestbook Admin</h1>
+
+<div id="entries">
+Loading...
+</div>
+
+<script>
+
+fetch("/list?page=1")
+.then(r=>r.text())
+.then(t=>{
+    document.getElementById("entries").innerHTML=
+        "<pre>"+t+"</pre>";
+});
+
+</script>
+
+</body>
+</html>
