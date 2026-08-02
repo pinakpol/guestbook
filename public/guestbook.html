@@ -1,30 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<title>Guestbook Admin</title>
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Second Life Guestbook</title>
 
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
 body{
-    font-family:Arial;
-    background:#222;
+
+    margin:0;
+
+    background:#ece2c6;
+
+    font-family:Georgia,serif;
+
+    color:#2d241c;
+
+}
+
+header{
+
+    background:#5b4128;
+
     color:white;
-    margin:40px;
+
+    padding:20px;
+
+    text-align:center;
+
+    font-size:34px;
+
+    font-weight:bold;
+
+    letter-spacing:1px;
+
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
+.container{
+
+    width:95%;
+    max-width:900px;
+
+    margin:25px auto;
+
 }
 
-td,th{
-    border:1px solid #555;
-    padding:8px;
+.toolbar{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-bottom:20px;
+
+}
+
+.toolbar input{
+
+    flex:1;
+
+    padding:12px;
+
+    font-size:16px;
+
+    border-radius:6px;
+
+    border:1px solid #b6a98f;
+
 }
 
 button{
-    padding:6px 12px;
+
+    padding:12px 18px;
+
+    border:none;
+
+    border-radius:6px;
+
+    background:#5b4128;
+
+    color:white;
+
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    background:#7b5937;
+
+}
+
+.entry{
+
+    background:white;
+
+    border-radius:10px;
+
+    padding:18px;
+
+    margin-bottom:18px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+
+}
+
+.avatar{
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    color:#5b4128;
+
+}
+
+.date{
+
+    color:#777;
+
+    margin-top:5px;
+
+    margin-bottom:12px;
+
+    font-size:14px;
+
+}
+
+.comment{
+
+    white-space:pre-wrap;
+
+    font-size:18px;
+
+    line-height:1.5;
+
+}
+
+.footer{
+
+    text-align:center;
+
+    margin:30px;
+
+    color:#666;
+
 }
 
 </style>
@@ -33,22 +163,229 @@ button{
 
 <body>
 
-<h1>Guestbook Admin</h1>
+<header>
+
+Second Life Guestbook
+
+</header>
+
+<div class="container">
+
+<div class="toolbar">
+
+<input
+
+id="search"
+
+placeholder="Search guestbook...">
+
+<button id="refresh">
+
+Refresh
+
+</button>
+
+</div>
 
 <div id="entries">
-Loading...
+
+Loading guestbook...
+
+</div>
+
+<div class="footer">
+
+Visitors are welcome to leave a message in-world.
+
+</div>
+
 </div>
 
 <script>
 
-fetch("/list?page=1")
-.then(r=>r.text())
-.then(t=>{
-    document.getElementById("entries").innerHTML=
-        "<pre>"+t+"</pre>";
+<script>
+
+let allEntries = [];
+
+//-------------------------------------
+// Escape HTML
+//-------------------------------------
+
+function escapeHTML(text)
+{
+    return String(text)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;");
+}
+
+//-------------------------------------
+// Pretty Date
+//-------------------------------------
+
+function prettyDate(dateString)
+{
+    const date = new Date(dateString);
+    const now = new Date();
+
+    const seconds =
+        Math.floor((now-date)/1000);
+
+    if(seconds < 60)
+        return "Just now";
+
+    if(seconds < 3600)
+        return Math.floor(seconds/60) + " minutes ago";
+
+    if(seconds < 86400)
+        return Math.floor(seconds/3600) + " hours ago";
+
+    if(seconds < 172800)
+        return "Yesterday";
+
+    return date.toLocaleString();
+}
+
+//-------------------------------------
+// Render Entries
+//-------------------------------------
+
+function render(entries)
+{
+    const container =
+        document.getElementById("entries");
+
+    if(entries.length==0)
+    {
+        container.innerHTML=
+        "<div class='entry'>No guestbook entries yet.</div>";
+
+        return;
+    }
+
+    let html="";
+
+    entries.forEach(e=>
+    {
+
+        html+=`
+
+<div class="entry">
+
+<div class="avatar">
+
+${escapeHTML(e.avatar)}
+
+</div>
+
+<div class="date">
+
+${prettyDate(e.created)}
+
+</div>
+
+<div class="comment">
+
+${escapeHTML(e.comment)}
+
+</div>
+
+</div>
+
+`;
+
+    });
+
+    container.innerHTML=html;
+
+}
+
+//-------------------------------------
+// Load Entries
+//-------------------------------------
+
+async function loadEntries()
+{
+    try
+    {
+        const response =
+            await fetch("/publicEntries");
+
+        allEntries =
+            await response.json();
+
+        render(allEntries);
+    }
+    catch(err)
+    {
+        console.error(err);
+
+        document.getElementById("entries").innerHTML=
+
+        "<div class='entry'>Unable to load guestbook.</div>";
+    }
+}
+
+//-------------------------------------
+// Search
+//-------------------------------------
+
+document
+.getElementById("search")
+.addEventListener("input",function()
+{
+
+    const text =
+        this.value.toLowerCase();
+
+    const filtered =
+        allEntries.filter(e=>
+    {
+
+        return(
+
+        e.avatar.toLowerCase().includes(text)
+
+        ||
+
+        e.comment.toLowerCase().includes(text)
+
+        );
+
+    });
+
+    render(filtered);
+
 });
+
+//-------------------------------------
+// Refresh
+//-------------------------------------
+
+document
+.getElementById("refresh")
+.addEventListener("click",function()
+{
+    loadEntries();
+});
+
+//-------------------------------------
+// Auto Refresh
+//-------------------------------------
+
+setInterval(loadEntries,60000);
+
+//-------------------------------------
+// Start
+//-------------------------------------
+
+loadEntries();
+
+</script>
 
 </script>
 
 </body>
+
 </html>
